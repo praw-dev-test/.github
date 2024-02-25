@@ -7,7 +7,7 @@ jobs:
         id: eval_rules
         env:
           SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
-        run: echo "should_run=${{ github.env.SHOULD_RUN }}" >> "$GITHUB_OUTPUT"
+        run: echo "should_run=$SHOULD_RUN" >> "$GITHUB_OUTPUT"
   complete_coveralls:
     if: needs.eval_rule.outputs.should_run == 'true'
     needs: test-multi-python
