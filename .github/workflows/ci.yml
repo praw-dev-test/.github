@@ -1,14 +1,16 @@
 jobs:
-  eval_rules:
+  eval-rules:
     name: Evaluate Rules
+    outputs:
+      should_run: ${{ steps.eval-rules.outputs.should_run }}
     runs-on: ubuntu-latest
     steps:
       - name: Eval Rules
-        id: eval_rules
+        id: eval-rules
         env:
           SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
         run: echo "should_run=${SHOULD_RUN}" >> "$GITHUB_OUTPUT"
-  complete_coveralls:
+  complete-coveralls:
     if: needs.eval_rule.outputs.should_run == 'true'
     needs: test-multi-python
     name: Check Coveralls
@@ -22,7 +24,7 @@ jobs:
   lint-multi-os:
     if: needs.eval_rule.outputs.should_run == 'true'
     name: Lint ${{ matrix.os }}
-    needs: eval_rules
+    needs: eval-rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -51,7 +53,7 @@ jobs:
   test-multi-os:
     if: needs.eval_rule.outputs.should_run == 'true'
     name: Test ${{ matrix.os }}
-    needs: eval_rules
+    needs: eval-rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -79,7 +81,7 @@ jobs:
   test-multi-python:
     if: needs.eval_rule.outputs.should_run == 'true'
     name: Test Python ${{ matrix.python-version }}
-    needs: eval_rules
+    needs: eval-rules
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -113,7 +115,7 @@ jobs:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
   test-network:
     if: endsWith(inputs.package, 'praw') && needs.eval_rule.outputs.should_run == 'true'
-    needs: eval_rules
+    needs: eval-rules
     name: Test Network Request
     runs-on: ubuntu-latest
     steps:
