@@ -2,9 +2,11 @@ jobs:
   temp:
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
+      - name: Debug
         run: |
-          echo "${{ github.event_name }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.event.review.author_association: ${{ github.event.review.author_association }}"
+          echo "github.event.pull_request.title: ${{ github.event.pull_request.title }}"
   complete_coveralls:
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
     needs: test-multi-python
