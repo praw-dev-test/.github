@@ -1,25 +1,28 @@
 jobs:
-  temp:
+  eval_rules:
+    name: Evaluate Rules
     runs-on: ubuntu-latest
     steps:
-      - name: Debug
-        run: |
-          echo "github.event_name: ${{ github.event_name }}"
-          echo "github.event.review.author_association: ${{ github.event.review.author_association }}"
-          echo "github.event.pull_request.title: ${{ github.event.pull_request.title }}"
+      - name: Eval Rules
+        id: eval_rules
+        env:
+          SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
+        run: echo "SHOULD_RUN=$SHOULD_RUN" >> $GITHUB_ENV
   complete_coveralls:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
+    if: SHOULD_RUN == 'true'
     needs: test-multi-python
+    name: Check Coveralls
     runs-on: ubuntu-latest
     steps:
-      - name: Coveralls Finished
+      - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
   lint-multi-os:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
+    if: $SHOULD_RUN == 'true'
     name: Lint ${{ matrix.os }}
+    needs: eval_rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -46,8 +49,9 @@ jobs:
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
   test-multi-os:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
+    if: $SHOULD_RUN == 'true'
     name: Test ${{ matrix.os }}
+    needs: eval_rules
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -73,8 +77,9 @@ jobs:
       matrix:
         os: [ macOS-latest, ubuntu-latest, windows-latest ]
   test-multi-python:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
+    if: $SHOULD_RUN == 'true'
     name: Test Python ${{ matrix.python-version }}
+    needs: eval_rules
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -107,7 +112,8 @@ jobs:
       matrix:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
   test-network:
-    if: endsWith(inputs.package, 'praw') && (github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks'))
+    if: endsWith(inputs.package, 'praw') && $SHOULD_RUN == 'true'
+    needs: eval_rules
     name: Test Network Request
     runs-on: ubuntu-latest
     steps:
