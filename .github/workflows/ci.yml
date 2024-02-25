@@ -9,7 +9,7 @@ jobs:
           SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
         run: echo "SHOULD_RUN=$SHOULD_RUN" >> $GITHUB_ENV
   complete_coveralls:
-    if: SHOULD_RUN == 'true'
+    if: $SHOULD_RUN == 'true'
     needs: test-multi-python
     name: Check Coveralls
     runs-on: ubuntu-latest
