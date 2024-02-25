@@ -1,4 +1,10 @@
 jobs:
+  temp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          echo "${{ github.event_name }}"
   complete_coveralls:
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.author_association == 'MEMBER' && github.event.pull_request.title == 'Update pre-commit hooks')
     needs: test-multi-python
