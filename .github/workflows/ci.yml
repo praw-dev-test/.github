@@ -6,8 +6,8 @@ jobs:
       - name: Eval Rules
         id: eval_rules
         env:
-          should_run: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
-        run: echo "should_run=github.env.should_run" >> $GITHUB_ENV
+          SHOULD_RUN: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'  && github.event.pull_request.title == 'Update pre-commit hooks') }}
+        run: echo "should_run=$SHOULD_RUN" >> $GITHUB_ENV
   complete_coveralls:
     if: github.env.should_run == 'true'
     needs: test-multi-python
